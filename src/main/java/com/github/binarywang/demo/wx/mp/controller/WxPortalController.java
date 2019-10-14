@@ -1,6 +1,7 @@
 package com.github.binarywang.demo.wx.mp.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,16 +26,19 @@ import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
  * @author Binary Wang(https://github.com/binarywang)
  */
 @Slf4j
-@AllArgsConstructor
-@RestController
-@RequestMapping("/wx/portal/{appid}")
-public class WxPortalController {
-    private final WxMpService wxService;
-    private final WxMpMessageRouter messageRouter;
 
-    @GetMapping(produces = "text/plain;charset=utf-8")
-    public String authGet(@PathVariable String appid,
-                          @RequestParam(name = "signature", required = false) String signature,
+@RestController
+@NoArgsConstructor
+@AllArgsConstructor
+@RequestMapping("/weixin")
+public class WxPortalController {
+
+    private String appId="1";
+    private  WxMpService wxService;
+    private  WxMpMessageRouter messageRouter;
+
+    @GetMapping("/wxindex")
+    public String authGet( @RequestParam(name = "signature", required = false) String signature,
                           @RequestParam(name = "timestamp", required = false) String timestamp,
                           @RequestParam(name = "nonce", required = false) String nonce,
                           @RequestParam(name = "echostr", required = false) String echostr) {
@@ -44,8 +49,8 @@ public class WxPortalController {
             throw new IllegalArgumentException("请求参数非法，请核实!");
         }
 
-        if (!this.wxService.switchover(appid)) {
-            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appid));
+        if (!this.wxService.switchover(appId)) {
+            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
         }
 
         if (wxService.checkSignature(timestamp, nonce, signature)) {
@@ -55,9 +60,8 @@ public class WxPortalController {
         return "非法请求";
     }
 
-    @PostMapping(produces = "application/xml; charset=UTF-8")
-    public String post(@PathVariable String appid,
-                       @RequestBody String requestBody,
+    @PostMapping("/wxindex")
+    public String post(@RequestBody String requestBody,
                        @RequestParam("signature") String signature,
                        @RequestParam("timestamp") String timestamp,
                        @RequestParam("nonce") String nonce,
@@ -68,8 +72,8 @@ public class WxPortalController {
                 + " timestamp=[{}], nonce=[{}], requestBody=[\n{}\n] ",
             openid, signature, encType, msgSignature, timestamp, nonce, requestBody);
 
-        if (!this.wxService.switchover(appid)) {
-            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appid));
+        if (!this.wxService.switchover(appId)) {
+            throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", appId));
         }
 
         if (!wxService.checkSignature(timestamp, nonce, signature)) {
